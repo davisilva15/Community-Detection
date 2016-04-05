@@ -1,9 +1,8 @@
 from random import random
 from math import log
-from linked_list import LinkedList
 
 
-class GraphNode:
+class Node:
 	def __init__(self, key, group):
 		"""
 		Constructs a graph node with a given key and a given group number
@@ -11,24 +10,28 @@ class GraphNode:
 		"""
 		self.key = key
 		self.group = group
-		self.neighbors = LinkedList()
+		self.neighbors = []
 
 	def add_neighbor(self, neighbor):
 		"""
 		Adds a graph node neighbor to self's adjacency list
 		"""
-		self.neighbors.add_neighbor(neighbor)
+		self.neighbors.append(neighbor)
 
 
 class Graph:
 	def __init__(self, nb_vector, prob_matrix):
 		"""
 		Constructs a random graph given the number of nodes in each group and its edge probability matrix
-
+		
 		Attributes:
-			self.last_group_nodes: The key of the largest node from each group
-			self.nb_nodes: The total number of nodes
-			self.nodes: An array containing all the graph's nodes
+		-----------------
+		last_group_nodes: array[int]
+			The key of the largest node from each group
+		nb_nodes: int
+			The total number of nodes
+		nodes: array[Node]
+			An array containing all the graph's nodes
 		"""
 		# Total number of groups
 		nb_groups = len(nb_vector)
@@ -50,7 +53,7 @@ class Graph:
 		for curr_group in range(nb_groups):
 			while curr_node <= self.last_group_nodes[curr_group]:
 				# By convention, the group index starts on 1
-				self.nodes.append(GraphNode(curr_node, curr_group + 1))
+				self.nodes.append(Node(curr_node, curr_group + 1))
 				curr_node += 1
 
 		# Building the graph's edges
@@ -78,8 +81,8 @@ class Graph:
 				for a in range(1, n1):
 					for b in range(a + 1, n1 + 1):
 						# Connects nodes number (shift1 + a) and (shift1 + b) by an edge
-						self.nodes[shift1 + a].add_neighbor(self.nodes[shift1 + b])
-						self.nodes[shift1 + b].add_neighbor(self.nodes[shift1 + a])
+						self.nodes[shift1 + a - 1].add_neighbor(self.nodes[shift1 + b - 1])
+						self.nodes[shift1 + b - 1].add_neighbor(self.nodes[shift1 + a - 1])
 			
 			# If the probability of each edge is in ]0, 1[
 			else:
@@ -102,8 +105,8 @@ class Graph:
 					b = edge - (a - 1)*n1 + (a*(a + 1))//2
 					
 					# Connects nodes number (shift1 + a) and (shift1 + b) by an edge
-					self.nodes[shift1 + a].add_neighbor(self.nodes[shift1 + b])
-					self.nodes[shift1 + b].add_neighbor(self.nodes[shift1 + a])
+					self.nodes[shift1 + a - 1].add_neighbor(self.nodes[shift1 + b - 1])
+					self.nodes[shift1 + b - 1].add_neighbor(self.nodes[shift1 + a - 1])
 		
 		# If the groups g1 and g2 are different
 		else:
@@ -117,8 +120,8 @@ class Graph:
 				for a in range(1, n1 + 1):
 					for b in range(1, n2 + 1):
 						# Connects nodes number (shift1 + a) and (shift2 + b) by an edge
-						self.nodes[shift1 + a].add_neighbor(self.nodes[shift2 + b])
-						self.nodes[shift2 + b].add_neighbor(self.nodes[shift1 + a])
+						self.nodes[shift1 + a - 1].add_neighbor(self.nodes[shift2 + b - 1])
+						self.nodes[shift2 + b - 1].add_neighbor(self.nodes[shift1 + a - 1])
 
 			# If the probability of each edge is in ]0, 1[
 			else:
@@ -139,5 +142,5 @@ class Graph:
 					b = edge%n2 + 1
 
 					# Connects nodes number (shift1 + a) and (shift2 + b) by an edge
-					self.nodes[shift1 + a].add_neighbor(self.nodes[shift2 + b])
-					self.nodes[shift2 + b].add_neighbor(self.nodes[shift1 + a])
+					self.nodes[shift1 + a - 1].add_neighbor(self.nodes[shift2 + b - 1])
+					self.nodes[shift2 + b - 1].add_neighbor(self.nodes[shift1 + a - 1])
