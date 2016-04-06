@@ -1,2 +1,2 @@
 # Community-Detection
-Community detection algorithms on social networks
+Community detection algorithms on graphs
