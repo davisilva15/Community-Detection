@@ -26,4 +26,4 @@ def non_backtracking(adj_list):
 					non_backtr[edge_dict[(u, v)]][edge_dict[(v, w)]] = 1
 
 	# Returns the non-backtracking matrix (numpy int matrix) and edge dictionary
-	return non_backtr, edge
+	return non_backtr, edge_dict
