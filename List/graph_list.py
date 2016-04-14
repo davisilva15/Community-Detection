@@ -15,7 +15,7 @@ class Graph:
 			The total number of groups
 		adj_list: dict[int: array[int]]
 			The graph's adjacency list
-		group: dict[int: int]
+		group: array[int]
 			A map from each node to its group
 		group_prop: array[float]
 			An array showing the proportion of nodes in each group
@@ -40,11 +40,11 @@ class Graph:
 		dic = np.arange(1, self.nb_nodes + 1)
 		np.random.shuffle(dic)
 		# Map from each node number to its group
-		self.group = {}
+		self.group = np.zeros(self.nb_nodes, dtype = np.int8)
 		ind = 0
 		for g in range(1, self.nb_groups + 1):
 			while ind < nb_vector[g - 1]:
-				self.group[dic[ind]] = g
+				self.group[dic[ind] - 1] = g
 				ind += 1
 
 		# The graph's adjacency list
@@ -163,7 +163,7 @@ class Graph:
 		f.write(str(self.nb_nodes) + '\n')
 		f.write(str(self.nb_groups) + '\n')
 		f.write(str(self.adj_list) + '\n')
-		f.write(str(self.group) + '\n')
+		f.write(str(self.group.tolist()) + '\n')
 		f.write(str(self.group_prop.tolist()) + '\n')
 		f.write(str(self.edge_prop.tolist()) + '\n')
 
