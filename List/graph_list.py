@@ -56,6 +56,7 @@ class Graph:
 			for group2 in range(group1, self.nb_groups):
 				self.__build_edges(group1, group2, prob_matrix[group1][group2], nb_vector, dic)
 
+
 	def __build_edges(self, g1, g2, p, nb_vector, dic):
 		"""
 		For each node1 in group g1 and node2 in group g2, an (undirected) edge is built between node1 and node2 with probability p
@@ -152,9 +153,10 @@ class Graph:
 				self.edge_prop[g1][g2] /= n1*n2
 				self.edge_prop[g2][g1] = self.edge_prop[g1][g2]
 
+
 	def write_in_file(self, file):
 		"""
-		Writes the graph generated on the specified file
+		Writes the graph generated with all its real attributes on the specified file
 		"""
 		f = open(file, 'w')
 
