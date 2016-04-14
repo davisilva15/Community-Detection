@@ -15,7 +15,7 @@ def infer_assignment(file, criterium, t_max):
 	N = int(f.readline())
 	q = int(f.readline())
 	adj_list = eval(f.readline())
-	group = eval(f.readline())
+	group = np.array(eval(f.readline()))
 	n = np.array(eval(f.readline()))
 	c = np.array(eval(f.readline()))*N
 
@@ -38,8 +38,8 @@ def overlap(N, q, n, groups, actual):
 	max_count = 0
 	for perm in all_perm:
 		count = 0
-		for u in range(1, N + 1):
-			if perm[groups[u - 1] - 1] == actual[u]:
+		for i in range(N):
+			if perm[groups[i] - 1] == actual[i]:
 				count += 1
 		if count > max_count:
 			max_count = count
