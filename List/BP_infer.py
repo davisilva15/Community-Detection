@@ -2,6 +2,11 @@ import numpy as np
 
 
 def BP_Inference(q, n, c, adj_list, criterium, t_max):
+	"""
+	Runs the belief propagation algorithm on a graph given by its adjacency list adj_list and (assumed) oracle parameters
+	q (number of groups), n (proportion of nodes in each group) and c (probability of a pair of nodes from given groups to
+	be joined by an edge multiplied by the number of edges). Returns the infered group assignment and its free energy.
+	"""
 	# Number of nodes on the graph
 	N = len(adj_list.keys())
 
@@ -98,13 +103,17 @@ def BP_Inference(q, n, c, adj_list, criterium, t_max):
 
 
 def rand_init(q):
-	# A random array of size q with positive elements whose sum is 1
+	"""
+	Returns a random array of size q with positive elements whose sum is 1
+	"""
 	r = np.random.rand(q)
 	return r/sum(r)
 
 
 def free_energy(adj_list, N, q, n, c, h, messages, edge_to_code):
-	# Calculates the free energy associated to the parameters given
+	"""
+	Calculates the free energy associated to the parameters given and updates matrix c
+	"""
 	f_BP = 0
 	prod = n*np.exp(-h)
 	prod_u = np.zeros(q)
@@ -133,7 +142,7 @@ def free_energy(adj_list, N, q, n, c, h, messages, edge_to_code):
 	c *= c_new/N
 	# Average (directed) degree
 	c_avg = np.sum(c)
-	# Updated value of array c
+	# Updated value of matrix c
 	c /= nn
 
 	# Final value of the Bethe free energy
