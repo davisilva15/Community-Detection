@@ -23,7 +23,7 @@ class Graph:
 			The proportion of edges to all possible edges between groups
 		"""
 		# Total number of nodes on the graph
-		self.nb_nodes = sum(nb_vector)
+		self.nb_nodes = nb_vector.sum()
 		# Total number of groups
 		self.nb_groups = len(nb_vector)
 		if len(prob_matrix) != self.nb_groups or len(prob_matrix[0]) != self.nb_groups:
