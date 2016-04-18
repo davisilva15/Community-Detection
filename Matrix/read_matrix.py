@@ -18,8 +18,8 @@ def read_file(file):
 	group = np.array(eval(f.readline()), dtype = np.int8)
 	# Proportion of nodes on each group
 	n = np.array(eval(f.readline()))
-	# Edge probability matrix
-	c = np.array(eval(f.readline()))
+	# Edge probability matrix times N
+	c = np.array(eval(f.readline()))*N
 
 	f.close()
 	
