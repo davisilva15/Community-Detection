@@ -163,7 +163,7 @@ class Graph:
 		f.write(str(self.nb_nodes) + '\n')
 		f.write(str(self.nb_groups) + '\n')
 		f.write(str(self.adj_matrix.tolist()) + '\n')
-		f.write(str(self.group) + '\n')
+		f.write(str(self.group.tolist()) + '\n')
 		f.write(str(self.group_prop.tolist()) + '\n')
 		f.write(str(self.edge_prop.tolist()) + '\n')
 
