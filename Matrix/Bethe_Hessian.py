@@ -20,57 +20,10 @@ def Bethe_Hessian(adj_matrix, r):
 	return H
 
 
-def BH_cluster_file(file):
+def eigenvectors(adj_matrix, q_max):
 	"""
-	Given a file containing a graph's data, returns the normalized overlap between the group assignment infered by
-	the Bethe-Hessian matrix spectral algorithm and the graph's true group assignment
-	"""
-	# Reads the graph's information
-	N, q, adj_matrix, group, n, c = read_file(file)
-	# The average degree of a node in the graph	
-	c_avg = (c*np.outer(n, n)).sum()/2
-
-	# Computes the Bethe-Hessian matrix with regularizer r = sqrt(c_avg)
-	H1 = Bethe_Hessian(adj_matrix, np.sqrt(c_avg))
-	# Computes the q smallest eigenvalues of H1 and their associated eigenvectors
-	eig_val1, eig_vec1 = linalg.eigsh(H1, k = q, which = 'SA')
-
-	# Indexes where the computed eigenvalues of H1 are negative
-	ind1, = np.where(eig_val1 < 0)
-
-	if len(ind1) == q:
-		# If all q eigenvalues computed are negative (all groups are assortative)
-		eig_vec = eig_vec1
-
-	else:
-		# Computes the Bethe-Hessian matrix with regularizer r = -sqrt(c_avg)
-		H2 = Bethe_Hessian(adj_matrix, -np.sqrt(c_avg))
-		# Computes the q - len(ind1) smallest eigenvalues of H2 and their associated eigenvectors
-		eig_val2, eig_vec2 = linalg.eigsh(H2, k = q - len(ind1), which = 'SA')
-
-		if len(ind1) == 0:
-			# If all groups are disassortative
-			eig_vec = eig_vec2
-
-		else:
-			# If there are both assortative and disassortative groups
-			eig_vec = np.transpose(eig_vec1[:, ind1])
-			np.append(eig_vec, np.transpose(eig_vec2), axis = 0)
-			eig_vec = np.transpose(eig_vec)
-
-	# Clusters the eigenvectors' coordinates in q groups using the K-means algorithm
-	est = KMeans(n_clusters = q)
-	est.fit(eig_vec)
-	est_groups = est.labels_ + np.ones(N, dtype = np.int)
-
-	# Returns the normalized overlap between the infered group assignment and the actual group assignment
-	return overlap(N, q, n, est_groups, group)
-
-
-def BH_cluster_matrix(adj_matrix, q_max):
-	"""
-	Given a graph's adjacency matrix and a maximum number of groups q_max to assign its nodes, returns the infered
-	group assignment given by the Bethe-Hessian matrix spectral algorithm
+	Given a graph's adjacency matrix and a maximum number of groups q_max to assign its nodes, returns the eigenvectors
+	of the Bethe-Hessian matrix associated to the group structure
 	"""
 	# The number of nodes in the graph
 	N = len(adj_matrix)
@@ -112,6 +65,39 @@ def BH_cluster_matrix(adj_matrix, q_max):
 			np.append(eig_vec, np.transpose(eig_vec2[:, ind2]), axis = 0)
 			eig_vec = np.transpose(eig_vec)
 
+	# Returns a matrix containing the relevant eigenvectors
+	return eig_vec
+
+
+def BH_cluster_file(file):
+	"""
+	Given a file containing a graph's data, returns the normalized overlap between the group assignment infered by
+	the Bethe-Hessian matrix spectral algorithm and the graph's true group assignment
+	"""
+	# Reads the graph's information
+	N, q, adj_matrix, group, n, c = read_file(file)
+	# The relevant eigenvectors for the spectral algorithm
+	eig_vec = eigenvectors(adj_matrix, q)
+
+	# Clusters the eigenvectors' coordinates in q groups using the K-means algorithm
+	est = KMeans(n_clusters = q)
+	est.fit(eig_vec)
+	est_groups = est.labels_ + np.ones(N, dtype = np.int)
+
+	# Returns the normalized overlap between the infered group assignment and the actual group assignment
+	return overlap(N, q, n, est_groups, group)
+
+
+def BH_cluster_matrix(adj_matrix, q_max):
+	"""
+	Given a graph's adjacency matrix and a maximum number of groups q_max to assign its nodes, returns the infered
+	group assignment given by the Bethe-Hessian matrix spectral algorithm
+	"""
+	# The number of nodes in the graph
+	N = len(adj_matrix)
+	# The relevant eigenvectors for the spectral algorithm
+	eig_vec = eigenvectors(adj_matrix, q_max)
+
 	# Clusters the eigenvectors' coordinates in q groups using the K-means algorithm
 	est = KMeans(n_clusters = len(eig_vec[0]))
 	est.fit(eig_vec)
@@ -121,16 +107,16 @@ def BH_cluster_matrix(adj_matrix, q_max):
 	return est_groups
 
 
-def print_graph_assortative(file):
+def plot_graph(file):
 	# Reads the graph's information
 	N, q, adj_matrix, group, n, c = read_file(file)
-	# The average degree of a node in the graph
-	c_avg = (c*np.outer(n, n)).sum()/2
+	# Checks if the dimension of the embedding space is 2 or 3
+	if q != 2 and q != 3:
+		print('Cannot plot a multidimensional graph')
+		return
 
-	# Computes the Bethe-Hessian matrix with regularizer r = sqrt(c_avg)
-	H = Bethe_Hessian(adj_matrix, np.sqrt(c_avg))
-	# Computes the q smallest eigenvalues and their associated eigenvectors
-	eig_val, eig_vec = linalg.eigsh(H, k = q, which = 'SA')
+	# The relevant eigenvectors for the spectral algorithm
+	eig_vec = eigenvectors(adj_matrix, q)
 
 	x = [np.array([np.zeros(int(round(N*ni))) for ni in n]) for _ in range(q)]
 	# Separates the eigenvectors' coordinates according to their related groups
