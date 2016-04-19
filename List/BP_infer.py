@@ -41,7 +41,7 @@ def BP_Inference(q, n, c, adj_list, criterium, t_max):
 			p += np.dot(c, messages[edge_to_code[(v, u)]])*messages[edge_to_code[(u, v)]]
 		if len(neighbors) == 0:
 			np.copyto(p, np.ones(q))
-		p /= sum(p)
+		p /= p.sum()
 
 	# Initialization of the "external field" h
 	h = np.zeros(q)
@@ -76,7 +76,7 @@ def BP_Inference(q, n, c, adj_list, criterium, t_max):
 				if k != v:
 					prod *= np.dot(c, messages[edge_to_code[(k, u)]])
 			np.copyto(messages[i], n*np.exp(-h)*prod)
-			messages[i] /= sum(messages[i])
+			messages[i] /= messages[i].sum()
 
 			# Adding to conv the difference of new to the old message code i
 			conv += np.linalg.norm(messages[i] - old_message, 1)
@@ -85,7 +85,7 @@ def BP_Inference(q, n, c, adj_list, criterium, t_max):
 			np.copyto(old_marg_prob, marg_prob[v - 1])
 			# Updating the marginal probability array of node v
 			marg_prob[v - 1] *= np.dot(c, messages[i])/np.dot(c, old_message)
-			marg_prob[v - 1] /= sum(marg_prob[v - 1])
+			marg_prob[v - 1] /= marg_prob[v - 1].sum()
 
 			# Updating the external field h
 			h += np.dot(c, marg_prob[v - 1] - old_marg_prob)/N
@@ -97,7 +97,7 @@ def BP_Inference(q, n, c, adj_list, criterium, t_max):
 	f_BP = free_energy(adj_list, N, q, n, c, h, messages, edge_to_code)
 
 	# An array containing the most probable group for each node
-	groups = np.argmax(marg_prob, axis = 1) + np.ones(N, dtype = np.int)
+	groups = np.argmax(marg_prob, axis = 1) + np.ones(N, dtype = np.int8)
 
 	return groups, f_BP
 
@@ -107,7 +107,7 @@ def rand_init(q):
 	Returns a random array of size q with positive elements whose sum is 1
 	"""
 	r = np.random.rand(q)
-	return r/sum(r)
+	return r/r.sum()
 
 
 def free_energy(adj_list, N, q, n, c, h, messages, edge_to_code):
@@ -130,15 +130,15 @@ def free_energy(adj_list, N, q, n, c, h, messages, edge_to_code):
 			# All needed to compute the free energy
 			np.copyto(cmvu, np.dot(c, messages[vu]))
 			prod_u *= cmvu
-			Zuv = np.dot(np.transpose(messages[uv]), cmvu)
+			Zuv = np.dot(messages[uv], cmvu)
 			# Needed to update the matrix c
-			c_new += np.dot(messages[uv], np.transpose(messages[vu]))/Zuv
+			c_new += np.outer(messages[uv], messages[vu])/Zuv
 
 			f_BP += np.log(Zuv)
-		f_BP -= 2*np.log(sum(prod_u))
+		f_BP -= 2*np.log(prod_u.sum())
 	f_BP /= (2*N)
 
-	nn = np.dot(n, np.transpose(n))
+	nn = np.outer(n, n)
 	c *= c_new/N
 	# Average (directed) degree
 	c_avg = np.sum(c)
