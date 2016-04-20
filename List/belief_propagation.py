@@ -1,6 +1,18 @@
 import numpy as np
 from BP_infer import BP_Inference
 from BP_learn import BP_learning
+from read_list import read_file
+from overlap import overlap
+
+
+def test_learn(adj_list, q):
+
+	c = np.array([[15, 1], [1, 30]], dtype = float)
+	groups, f_BP = BP_learning(len(n), np.array([0.9, 0.1]), c, g.adj_list, criterium, 0.3, t_max, 4)
+
+	print(n)
+	print(c)
+	print(f_BP)
 
 
 def infer_assignment(file, criterium, t_max):
@@ -8,18 +20,8 @@ def infer_assignment(file, criterium, t_max):
 	Given a file containing all the graph's data, infers the group assignment by belief propagation
 	Returns the (normalized) overlap to the actual group assignment and the Bethe free energy
 	"""
-	# File where the graph data is writen
-	f = open(file, 'r')
-
-	# All the true parameters of the graph
-	N = int(f.readline())
-	q = int(f.readline())
-	adj_list = eval(f.readline())
-	group = np.array(eval(f.readline()))
-	n = np.array(eval(f.readline()))
-	c = np.array(eval(f.readline()))*N
-
-	f.close()
+	# Reads the graph's data from file
+	N, q, adj_list, group, n, c = read_file(file)
 
 	# The true proportion of nodes in each group
 	n_actual = np.copy(n)
@@ -27,6 +29,7 @@ def infer_assignment(file, criterium, t_max):
 	f_min = 0
 	groups_opt = np.zeros(N, dtype = np.int8)
 	n_opt = np.zeros(q)
+
 	# We take the best of 3 applications of BP_Inference (measured by its free energy) to wash away bad random initializations
 	for _ in range(3):
 		# The group assignment given by the belief propagation algorithm and its free energy
@@ -43,38 +46,4 @@ def infer_assignment(file, criterium, t_max):
 	return overlap(N, q, n_opt, groups_opt, group), f_min
 
 
-def overlap(N, q, n, groups, actual):
-	"""
-	Calculates the overlap between the group assignment groups and the actual group assignment of the nodes
-	It's normalized to return 0 if all nodes are assigned to the same group and 1 if both assignments are identical
-	"""
-	# All permutations of [1, 2, ..., q]
-	all_perm = __all_permutations(q)
-	# The number of nodes whose group assignment is correct up to a permutation of the group labels
-	max_count = 0
-	for perm in all_perm:
-		count = 0
-		for i in range(N):
-			if perm[groups[i] - 1] == actual[i]:
-				count += 1
-		if count > max_count:
-			max_count = count
-	# Proportion of correctly assigned nodes (up to a permutation of group labels)
-	ovlp = max_count/N
-	# Normalization of the overlap
-	na = max(n)
-	return (ovlp - na)/(1 - na)
-
-
-def __all_permutations(N):
-	"""
-	Returns a list with all permutations of [1, 2, ..., N]
-	"""
-	if N == 1:
-		return [[1]]
-	permut = __all_permutations(N - 1)
-	all_perm = []
-	for perm in permut:
-		for i in range(N):
-			all_perm.append(perm[:i] + [N] + perm[i:])
-	return all_perm
+# print(infer_assignment('graph2.txt', 0, 12))
