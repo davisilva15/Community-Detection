@@ -5,16 +5,6 @@ from read_list import read_file
 from overlap import overlap
 
 
-def test_learn(adj_list, q):
-
-	c = np.array([[15, 1], [1, 30]], dtype = float)
-	groups, f_BP = BP_learning(len(n), np.array([0.9, 0.1]), c, g.adj_list, criterium, 0.3, t_max, 4)
-
-	print(n)
-	print(c)
-	print(f_BP)
-
-
 def infer_assignment(file, criterium, t_max):
 	"""
 	Given a file containing all the graph's data, infers the group assignment by belief propagation
@@ -44,6 +34,3 @@ def infer_assignment(file, criterium, t_max):
 
 	# Returns the overlap between the infered group assignment and the actual assignment and its free energy
 	return overlap(N, q, n_opt, groups_opt, group), f_min
-
-
-# print(infer_assignment('graph2.txt', 0, 12))
