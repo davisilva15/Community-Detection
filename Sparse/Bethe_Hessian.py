@@ -69,7 +69,7 @@ def eigenvectors(N, row, col, q_max):
 	return eig_vec
 
 
-def BH_cluster_file(file):
+def BH_cluster_file(file, plot_graph = False):
 	"""
 	Given a file containing a graph's data, returns the normalized overlap between the group assignment infered by
 	the Bethe-Hessian matrix spectral algorithm and the graph's true group assignment
@@ -84,8 +84,36 @@ def BH_cluster_file(file):
 	est.fit(eig_vec)
 	est_groups = est.labels_ + np.ones(N, dtype = np.int)
 
-	# Returns the normalized overlap between the infered group assignment and the actual group assignment
-	return overlap(N, q, n, est_groups, group)
+	# The normalized overlap between the infered group assignment and the actual group assignment
+	ovlp = overlap(N, q, n, est_groups, group)
+
+	# If the graph can be plotted and the user wants it to be plotted
+	if plot_graph and q <= 3:
+		x = [np.array([np.zeros(int(round(N*ni))) for ni in n]) for _ in range(q)]
+		# Separates the eigenvectors' coordinates according to their related groups
+		cont = np.zeros(q, dtype = np.int)
+		for i in range(N):
+			for j in range(q):
+				x[j][group[i] - 1][cont[group[i] - 1]] = eig_vec[i, j]
+			cont[group[i] - 1] += 1
+
+		if q == 2:
+			# If there are two groups, plot the eigenvectors' coordinates on the plane
+			plt.plot(x[0][0], x[1][0], 'ro', color = 'r')
+			plt.plot(x[0][1], x[1][1], 'ro', color = 'b')
+			plt.show()
+
+		elif q == 3:
+			# If there are three groups, plot the eigenvectors' coordinates on 3d space
+			fig = plt.figure()
+			ax = fig.add_subplot(111, projection = '3d')
+			ax.scatter(x[0][0], x[1][0], x[2][0], 'ro', color = 'r')
+			ax.scatter(x[0][1], x[1][1], x[2][1], 'ro', color = 'g')
+			ax.scatter(x[0][2], x[1][2], x[2][2], 'ro', color = 'b')
+			plt.show()
+
+	# Returns the calculated overlap
+	return ovlp
 
 
 def BH_cluster_sparse(N, row, col, q_max):
@@ -105,36 +133,9 @@ def BH_cluster_sparse(N, row, col, q_max):
 	return est_groups
 
 
-def plot_graph(file):
-	# Reads the graph's information
-	N, q, row, col, group, n, c = read_file(file)
-	# Checks if the dimension of the embedding space is 2 or 3
-	if q != 2 and q != 3:
-		print('Cannot plot a multidimensional graph')
-		return
-
-	# The relevant eigenvectors for the spectral algorithm
-	eig_vec = eigenvectors(N, row, col, q)
-
-	x = [np.array([np.zeros(int(round(N*ni))) for ni in n]) for _ in range(q)]
-	# Separates the eigenvectors' coordinates according to their related groups
-	cont = np.zeros(q, dtype = np.int)
-	for i in range(N):
-		for j in range(q):
-			x[j][group[i] - 1][cont[group[i] - 1]] = eig_vec[i, j]
-		cont[group[i] - 1] += 1
-
-	if q == 2:
-		# If there are two groups, plot the eigenvectors' coordinates on the plane
-		plt.plot(x[0][0], x[1][0], 'ro', color = 'r')
-		plt.plot(x[0][1], x[1][1], 'ro', color = 'b')
-		plt.show()
-
-	elif q == 3:
-		# If there are three groups, plot the eigenvectors' coordinates on 3d space
-		fig = plt.figure()
-		ax = fig.add_subplot(111, projection = '3d')
-		ax.scatter(x[0][0], x[1][0], x[2][0], 'ro', color = 'r')
-		ax.scatter(x[0][1], x[1][1], x[2][1], 'ro', color = 'g')
-		ax.scatter(x[0][2], x[1][2], x[2][2], 'ro', color = 'b')
-		plt.show()
+def compute_overlap(N, q, n, group, row, col):
+	"""
+	Computes and returns the normalized overlap between the true group assignment and the infered group assignment given
+	by the Bethe-Hessian matrix spectral algorithm
+	"""
+	return overlap(N, q, n, BH_cluster_sparse(N, row, col, q), group)
