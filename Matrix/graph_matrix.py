@@ -23,7 +23,7 @@ class Graph:
 			The proportion of edges to all possible edges between groups
 		"""
 		# Total number of nodes on the graph
-		self.nb_nodes = nb_vector.sum()
+		self.nb_nodes = sum(nb_vector)
 		# Total number of groups
 		self.nb_groups = len(nb_vector)
 		if len(prob_matrix) != self.nb_groups or len(prob_matrix[0]) != self.nb_groups:
@@ -33,8 +33,9 @@ class Graph:
 		self.group_prop = nb_vector/self.nb_nodes
 
 		# Constructs a vector indicating the biggest node key for each group
+		last_nodes = np.copy(nb_vector)
 		for i in range(1, self.nb_groups):
-			nb_vector[i] += nb_vector[i-1]
+			last_nodes[i] += last_nodes[i-1]
 
 		# Permutates the nodes so that there isn't an obvious relation between the nodes of each group
 		dic = np.arange(self.nb_nodes)
@@ -43,7 +44,7 @@ class Graph:
 		self.group = np.zeros(self.nb_nodes, dtype = np.int8)
 		ind = 0
 		for g in range(1, self.nb_groups + 1):
-			while ind < nb_vector[g - 1]:
+			while ind < last_nodes[g - 1]:
 				self.group[dic[ind]] = g
 				ind += 1
 
@@ -54,10 +55,10 @@ class Graph:
 		# Building the graph's edges
 		for group1 in range(self.nb_groups):
 			for group2 in range(group1, self.nb_groups):
-				self.__build_edges(group1, group2, prob_matrix[group1][group2], nb_vector, dic)
+				self.__build_edges(group1, group2, prob_matrix[group1][group2], last_nodes, dic)
 
 
-	def __build_edges(self, g1, g2, p, nb_vector, dic):
+	def __build_edges(self, g1, g2, p, last_nodes, dic):
 		"""
 		For each node1 in group g1 and node2 in group g2, an (undirected) edge is built between node1 and node2 with probability p
 		"""
@@ -66,9 +67,9 @@ class Graph:
 			return
 
 		# Number of nodes whose group number is smaller than g1
-		shift1 = nb_vector[g1 - 1] if g1 > 0 else 0
+		shift1 = last_nodes[g1 - 1] if g1 > 0 else 0
 		# Number of nodes whose group is g1
-		n1 = nb_vector[g1] - shift1
+		n1 = last_nodes[g1] - shift1
 
 		# If g1 and g2 are the same group
 		if g1 == g2:
@@ -112,9 +113,9 @@ class Graph:
 		# If the groups g1 and g2 are different
 		else:
 			# Number of nodes whose group number is smaller than g2
-			shift2 = nb_vector[g2 - 1]
+			shift2 = last_nodes[g2 - 1]
 			# Number of nodes whose group is g2
-			n2 = nb_vector[g2] - shift2
+			n2 = last_nodes[g2] - shift2
 
 			# If all pairs of nodes between these groups must be connected by edges
 			if p == 1:
